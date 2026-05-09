@@ -51,8 +51,9 @@ export function Profile() {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${user.accessToken}`,
+              "X-Noroff-API-Key": "9ac5c94b-623e-4ae8-af56-e222a29990ab",
             },
-          }
+          },
         );
 
         if (!res.ok) {
@@ -85,7 +86,7 @@ export function Profile() {
     setUpdateError("");
     setUpdateSuccess("");
 
-    if (!avatarUrl.trim()) {
+    if (!avatarUrl || typeof avatarUrl !== "string" || !avatarUrl.trim()) {
       setUpdateError("Please enter a valid image URL");
       return;
     }
@@ -95,16 +96,20 @@ export function Profile() {
       const userStr = window.localStorage.getItem("user");
       const user = JSON.parse(userStr);
 
-      const res = await fetch(`${API_BASE_URL}/holidaze/profiles/${user.name}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.accessToken}`,
+      const res = await fetch(
+        `${API_BASE_URL}/holidaze/profiles/${user.name}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.accessToken}`,
+            "X-Noroff-API-Key": "9ac5c94b-623e-4ae8-af56-e222a29990ab",
+          },
+          body: JSON.stringify({
+            avatar: avatarUrl,
+          }),
         },
-        body: JSON.stringify({
-          avatar: avatarUrl,
-        }),
-      });
+      );
 
       if (!res.ok) {
         const data = await res.json();
@@ -217,14 +222,22 @@ export function Profile() {
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   <strong>Joined:</strong>
                 </Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 2 }}
+                >
                   {formatDate(profile.created)}
                 </Typography>
 
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   <strong>Last Updated:</strong>
                 </Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 2 }}
+                >
                   {formatDate(profile.updated)}
                 </Typography>
 
@@ -233,7 +246,11 @@ export function Profile() {
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                       <strong>Bookings:</strong>
                     </Typography>
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      sx={{ mb: 2 }}
+                    >
                       {profile._count.bookings || 0}
                     </Typography>
 
@@ -307,7 +324,10 @@ export function Profile() {
                     overflow: "hidden",
                   }}
                 >
-                  <Typography variant="caption" sx={{ display: "block", mb: 1 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ display: "block", mb: 1 }}
+                  >
                     Preview:
                   </Typography>
                   <img
@@ -330,7 +350,7 @@ export function Profile() {
                 type="submit"
                 variant="contained"
                 color="primary"
-                disabled={isUpdating || !avatarUrl.trim()}
+                disabled={isUpdating || !avatarUrl || typeof avatarUrl !== "string" || !avatarUrl.trim()}
                 sx={{ mt: 1 }}
               >
                 {isUpdating ? "Updating..." : "Update Avatar"}
