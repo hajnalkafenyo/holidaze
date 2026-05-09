@@ -1,110 +1,344 @@
-//import { useState } from "react";
-import { Grid, Paper, Typography } from "@mui/material";
-import ProfileCard from "./components/profileCard";
-import { VenueCard } from "./components/venueCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Grid,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  CircularProgress,
+  Alert,
+  Card,
+  CardContent,
+  Avatar,
+  Divider,
+} from "@mui/material";
+import { Edit as EditIcon } from "@mui/icons-material";
 
-// APP
+const API_BASE_URL = "https://v2.api.noroff.dev";
+
 export function Profile() {
-  const [data, setData] = useState(undefined);
-    const [isLoading, setIsLoading] = useState(false);
-  
-    const [error, setError] = useState("");
-  
-   try {
-      const res = await fetch(`https://v2.api.noroff.dev/holidaze/profiles/${name}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          //"X-Noroff-API-Key": NOROFF_API_KEY,
-        },
-      });
-      if (!res.ok) {
-        const data = await res.json();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState("");
+  const [updateSuccess, setUpdateSuccess] = useState("");
 
-        if (data.error) {
-          setError(data.error.message);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const userStr = window.localStorage.getItem("user");
+        if (!userStr) {
+          navigate("/log-in");
+          return;
+        }
+
+        const user = JSON.parse(userStr);
+        if (!user?.name) {
+          navigate("/log-in");
+          return;
+        }
+
+        setIsLoading(true);
+        const res = await fetch(
+          `${API_BASE_URL}/holidaze/profiles/${user.name}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.accessToken}`,
+            },
+          }
+        );
+
+        if (!res.ok) {
+          const data = await res.json();
+          if (data.errors) {
+            setError(data.errors[0]?.message || "Failed to load profile");
+          } else {
+            setError("Failed to load profile");
+          }
           setIsLoading(false);
           return;
         }
 
-        setError("API returned invalid state");
+        const data = await res.json();
+        setProfile(data.data);
+        setAvatarUrl(data.data.avatar || "");
+        setError("");
+      } catch (e) {
+        setError(e.message || "An error occurred while loading the profile");
+      } finally {
         setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [navigate]);
+
+  const handleAvatarUpdate = async (e) => {
+    e.preventDefault();
+    setUpdateError("");
+    setUpdateSuccess("");
+
+    if (!avatarUrl.trim()) {
+      setUpdateError("Please enter a valid image URL");
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+      const userStr = window.localStorage.getItem("user");
+      const user = JSON.parse(userStr);
+
+      const res = await fetch(`${API_BASE_URL}/holidaze/profiles/${user.name}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.accessToken}`,
+        },
+        body: JSON.stringify({
+          avatar: avatarUrl,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        if (data.errors) {
+          setUpdateError(data.errors[0]?.message || "Failed to update avatar");
+        } else {
+          setUpdateError("Failed to update avatar");
+        }
+        setIsUpdating(false);
         return;
       }
+
       const data = await res.json();
-
-      if (data.error) {
-        setError(data.error.message);
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(false);
-      setError("");
+      setProfile(data.data);
+      setUpdateSuccess("Avatar updated successfully!");
+      setTimeout(() => setUpdateSuccess(""), 3000);
     } catch (e) {
-      setError(e.message);
-      setIsLoading(false);
+      setUpdateError(e.message || "An error occurred while updating avatar");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   if (isLoading) {
-    return "Loading...";
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
-    return <p>There was an error when loading the data. {error}</p>;
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="error">Error loading profile: {error}</Alert>
+      </Box>
+    );
   }
 
+  if (!profile) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="warning">No profile data found</Alert>
+      </Box>
+    );
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   return (
-    <Grid direction="column" sx={{ overflowX: "hidden" }}>
-      <Grid sm={12} md={6}>
-        <img
-          alt="avatar"
-          style={{
-            width: "100vw",
-            height: "35vh",
-            objectFit: "cover",
-            objectPosition: "50% 50%",
-            position: "relative",
-          }}
-          src="https://iris2.gettimely.com/images/default-cover-image.jpg"
-        />
-      </Grid>
-      <Grid
-        container
-        direction={{ xs: "column", md: "row" }}
-        spacing={3}
+    <Box sx={{ pb: 4 }}>
+      {/* Cover Image */}
+      <Box
         sx={{
-          position: "absolute",
-          top: "20vh",
-          px: { xs: 0, md: 7 },
+          width: "100%",
+          height: { xs: "200px", md: "300px" },
+          backgroundImage: `url(${profile.avatar || "https://images.unsplash.com/photo-1557821552-17105176677c?w=1200&h=300&fit=crop"})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          position: "relative",
+          mb: 4,
         }}
-      >
-        {/* PROFILE CARD */}
-        <Grid>
-          <Grid md={3}>
-            <ProfileCard
-            /* name="Jane Smith"
-            sub="director"
-            dt1={mainUser.dt1}
-            dt2={mainUser.dt2}
-            dt3={mainUser.dt3}*/
-            ></ProfileCard>
-          </Grid>
-          <Paper
-            elevation={3}
-            variant="outlined"
-            square
-            sx={{ padding: "8px", width: "100%" }}
-          >
-            <Typography variant="h2" component="h2">
+      />
+
+      <Grid container spacing={3} sx={{ px: { xs: 2, md: 4 } }}>
+        {/* Profile Card Section */}
+        <Grid item xs={12} md={4}>
+          <Card elevation={3}>
+            <CardContent sx={{ textAlign: "center" }}>
+              <Avatar
+                src={profile.avatar}
+                sx={{
+                  width: 150,
+                  height: 150,
+                  mx: "auto",
+                  mb: 2,
+                  fontSize: "3rem",
+                }}
+              >
+                {profile.name?.charAt(0).toUpperCase()}
+              </Avatar>
+              <Typography variant="h5" component="h1" sx={{ mb: 1 }}>
+                {profile.name}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                {profile.email}
+              </Typography>
+              <Divider sx={{ my: 2 }} />
+
+              {/* Profile Stats */}
+              <Box sx={{ textAlign: "left", mt: 3 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  <strong>User ID:</strong>
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 2, wordBreak: "break-all" }}
+                >
+                  {profile.id}
+                </Typography>
+
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  <strong>Joined:</strong>
+                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                  {formatDate(profile.created)}
+                </Typography>
+
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  <strong>Last Updated:</strong>
+                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                  {formatDate(profile.updated)}
+                </Typography>
+
+                {profile._count && (
+                  <>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      <strong>Bookings:</strong>
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                      {profile._count.bookings || 0}
+                    </Typography>
+
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      <strong>Venues:</strong>
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      {profile._count.venues || 0}
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Profile Details Section */}
+        <Grid item xs={12} md={8}>
+          {/* Bio Section */}
+          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
               Bio
             </Typography>
-            <p>Hello, my name is John Doe</p>
+            <Typography variant="body2" color="textSecondary">
+              {profile.bio || "No bio provided"}
+            </Typography>
+          </Paper>
+
+          {/* Avatar Update Section */}
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              <EditIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+              Update Avatar
+            </Typography>
+
+            {updateError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {updateError}
+              </Alert>
+            )}
+
+            {updateSuccess && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {updateSuccess}
+              </Alert>
+            )}
+
+            <form onSubmit={handleAvatarUpdate}>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Image URL
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  disabled={isUpdating}
+                  variant="outlined"
+                  size="small"
+                />
+              </Box>
+
+              {avatarUrl && (
+                <Box
+                  sx={{
+                    mb: 2,
+                    maxWidth: "200px",
+                    borderRadius: 1,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Typography variant="caption" sx={{ display: "block", mb: 1 }}>
+                    Preview:
+                  </Typography>
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar preview"
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      borderRadius: "4px",
+                      objectFit: "cover",
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                </Box>
+              )}
+
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={isUpdating || !avatarUrl.trim()}
+                sx={{ mt: 1 }}
+              >
+                {isUpdating ? "Updating..." : "Update Avatar"}
+              </Button>
+            </form>
           </Paper>
         </Grid>
       </Grid>
-    </Grid>
+    </Box>
   );
 }

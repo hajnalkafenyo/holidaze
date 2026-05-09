@@ -21,7 +21,8 @@ export default function NewVenue() {
         },
       }}
       submit={async (body) => {
-        const accessToken = window.localStorage.getItem("user");
+        const user = JSON.parse(window.localStorage.getItem("user"));
+        const accessToken = user?.accessToken;
         try {
           const res = await fetch("https://v2.api.noroff.dev/holidaze/venues", {
             method: "post",

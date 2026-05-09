@@ -81,8 +81,14 @@ export const Login = () => {
     const data = await response.json();
 
     console.log(data);
-    const accessToken = data.data.accessToken;
-    window.localStorage.setItem("user", accessToken);
+    const userData = {
+      accessToken: data.data.accessToken,
+      name: data.data.name,
+      email: data.data.email,
+      id: data.data.id,
+      avatar: data.data.avatar,
+    };
+    window.localStorage.setItem("user", JSON.stringify(userData));
 
     window.location.href = "/";
   };
