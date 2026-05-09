@@ -69,7 +69,7 @@ export function Profile() {
 
         const data = await res.json();
         setProfile(data.data);
-        setAvatarUrl(data.data.avatar || "");
+        setAvatarUrl(data.data.avatar?.url || "");
         setError("");
       } catch (e) {
         setError(e.message || "An error occurred while loading the profile");
@@ -106,7 +106,10 @@ export function Profile() {
             "X-Noroff-API-Key": "9ac5c94b-623e-4ae8-af56-e222a29990ab",
           },
           body: JSON.stringify({
-            avatar: avatarUrl,
+            avatar: {
+              url: avatarUrl,
+              alt: "User avatar",
+            },
           }),
         },
       );
@@ -173,7 +176,7 @@ export function Profile() {
         sx={{
           width: "100%",
           height: { xs: "200px", md: "300px" },
-          backgroundImage: `url(${profile.avatar || "https://images.unsplash.com/photo-1557821552-17105176677c?w=1200&h=300&fit=crop"})`,
+          backgroundImage: `url(${profile.avatar?.url || "https://images.unsplash.com/photo-1557821552-17105176677c?w=1200&h=300&fit=crop"})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           position: "relative",
@@ -187,7 +190,7 @@ export function Profile() {
           <Card elevation={3}>
             <CardContent sx={{ textAlign: "center" }}>
               <Avatar
-                src={profile.avatar}
+                src={profile.avatar?.url}
                 sx={{
                   width: 150,
                   height: 150,
