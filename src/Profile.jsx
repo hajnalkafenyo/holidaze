@@ -36,7 +36,6 @@ export function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Form state
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
@@ -45,7 +44,6 @@ export function Profile() {
   const [updateError, setUpdateError] = useState("");
   const [updateSuccess, setUpdateSuccess] = useState("");
 
-  // Bookings and Venues state
   const [bookings, setBookings] = useState([]);
   const [isLoadingBookings, setIsLoadingBookings] = useState(false);
   const [bookingsError, setBookingsError] = useState("");
@@ -53,7 +51,6 @@ export function Profile() {
   const [isLoadingVenues, setIsLoadingVenues] = useState(false);
   const [venuesError, setVenuesError] = useState("");
 
-  // Venue bookings modal state
   const [venueBookingsDialog, setVenueBookingsDialog] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [venueBookings, setVenueBookings] = useState([]);
@@ -116,7 +113,6 @@ export function Profile() {
     fetchProfile();
   }, [navigate]);
 
-  // Fetch bookings
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -156,7 +152,6 @@ export function Profile() {
     fetchBookings();
   }, []);
 
-  // Fetch venues (if venue manager)
   useEffect(() => {
     const fetchVenues = async () => {
       try {
@@ -343,7 +338,6 @@ export function Profile() {
 
   return (
     <Box sx={{ pb: 4 }}>
-      {/* Cover Image */}
       <Box
         sx={{
           width: "100%",
@@ -357,7 +351,6 @@ export function Profile() {
       />
 
       <Grid container spacing={3} sx={{ px: { xs: 2, md: 4 } }}>
-        {/* Profile Card Section */}
         <Grid item xs={12} md={4}>
           <Card elevation={3}>
             <CardContent sx={{ textAlign: "center" }}>
@@ -381,7 +374,6 @@ export function Profile() {
               </Typography>
               <Divider sx={{ my: 2 }} />
 
-              {/* Profile Stats */}
               <Box sx={{ textAlign: "left", mt: 3 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   <strong>User ID:</strong>
@@ -442,7 +434,6 @@ export function Profile() {
           </Card>
         </Grid>
 
-        {/* Edit Profile Form Section */}
         <Grid item xs={12} md={8}>
           <Paper elevation={3} sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 3 }}>
@@ -462,7 +453,6 @@ export function Profile() {
             )}
 
             <form onSubmit={handleProfileUpdate}>
-              {/* Bio Field */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Bio
@@ -479,7 +469,6 @@ export function Profile() {
                 />
               </Box>
 
-              {/* Avatar URL Field */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Avatar URL
@@ -516,7 +505,6 @@ export function Profile() {
                 )}
               </Box>
 
-              {/* Banner URL Field */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Banner URL
@@ -553,7 +541,6 @@ export function Profile() {
                 )}
               </Box>
 
-              {/* Venue Manager Checkbox */}
               <Box sx={{ mb: 3 }}>
                 <FormControlLabel
                   control={
@@ -567,7 +554,6 @@ export function Profile() {
                 />
               </Box>
 
-              {/* Submit Button */}
               <Button
                 type="submit"
                 variant="contained"
@@ -582,7 +568,6 @@ export function Profile() {
         </Grid>
       </Grid>
 
-      {/* Bookings Section */}
       <Grid item xs={12} sx={{ px: { xs: 2, md: 4 }, mt: 4 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
           My Bookings
@@ -642,7 +627,6 @@ export function Profile() {
         )}
       </Grid>
 
-      {/* Venues Section (if venue manager) */}
       {venueManager && (
         <Grid item xs={12} sx={{ px: { xs: 2, md: 4 }, mt: 4 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>

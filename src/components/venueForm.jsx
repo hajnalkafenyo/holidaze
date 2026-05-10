@@ -16,7 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { use, useState } from "react";
+import { useState } from "react";
 
 function BasicSelect({ amount, setAmount }) {
   const handleChange = (event) => {

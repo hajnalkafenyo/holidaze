@@ -19,17 +19,6 @@ import {
   Box,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import ImageList from "@mui/material/ImageList";
-import ImageListItem from "@mui/material/ImageListItem";
-import ImageListItemBar from "@mui/material/ImageListItemBar";
-import ListSubheader from "@mui/material/ListSubheader";
-import IconButton from "@mui/material/IconButton";
-import InfoIcon from "@mui/icons-material/Info";
-import { styled } from "@mui/material/styles";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import * as React from "react";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { VenueForm } from "./components/venueForm";
@@ -52,7 +41,6 @@ export default function EditVenuePage() {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              //"X-Noroff-API-Key": NOROFF_API_KEY,
             },
           },
         );

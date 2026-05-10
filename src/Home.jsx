@@ -18,7 +18,6 @@ export default function Home() {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            //"X-Noroff-API-Key": NOROFF_API_KEY,
           },
         });
         if (!res.ok) {

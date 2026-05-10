@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import {
   Avatar,
@@ -18,35 +18,6 @@ import { validateEmail, validatePassword } from "./validators/validators";
 
 const API_BASE_URL = "https://v2.api.noroff.dev";
 const NOROFF_API_KEY = "72a1c703-80ba-45da-a12e-3fcc1efb2c64";
-/*
-const useStyles = makeStyles((theme) => ({
-  root: {
-    height: "100vh",
-  },
-  image: {
-    backgroundImage: "url(https://source.unsplash.com/random)",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-  },
-  paper: {
-    margin: theme.spacing(8, 4),
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  },
-  avatar: {
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main,
-  },
-  form: {
-    width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(1),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-}));*/
 
 export const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -80,7 +51,6 @@ export const Login = () => {
 
     const data = await response.json();
 
-    console.log(data);
     const userData = {
       accessToken: data.data.accessToken,
       name: data.data.name,
@@ -135,7 +105,6 @@ export const Login = () => {
             noValidate
             onSubmit={(e) => {
               e.preventDefault();
-              console.log("email", email);
               const emailMessage = validateEmail(email);
               setEmailError(emailMessage);
               const passwordMessage = validatePassword(password);

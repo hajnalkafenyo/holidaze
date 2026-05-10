@@ -14,38 +14,6 @@ import { BasicRating } from "./components/basicRating";
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-/*
-function TitlebarImageList() {
-  return (
-    <ImageList sx={{ width: "100%", height: 450 }}>
-      <ImageListItem key="Subheader" cols={2}>
-        <ListSubheader component="div">Pictures of Venue</ListSubheader>
-      </ImageListItem>
-      {data?.media?.map((item) => (
-        <ImageListItem key={item.url}>
-          <img
-            srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
-            src={`${venue.media[0]?.url}?w=248&fit=crop&auto=format`}
-            alt={venue.media[0]?.alt}
-            loading="lazy"
-          />
-          <ImageListItemBar
-            title={venue.name}
-            subtitle={venue.author}
-            actionIcon={
-              <IconButton
-                sx={{ color: "rgba(255, 255, 255, 0.54)" }}
-                aria-label={`info about ${item.title}`}
-              >
-                <InfoIcon />
-              </IconButton>
-            }
-          />
-        </ImageListItem>
-      ))}
-    </ImageList>
-  );
-}*/
 
 export default function Venue() {
   const { id } = useParams();
@@ -54,7 +22,6 @@ export default function Venue() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Booking form state
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [guests, setGuests] = useState(1);
@@ -72,7 +39,6 @@ export default function Venue() {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              //"X-Noroff-API-Key": NOROFF_API_KEY,
             },
           },
         );
@@ -178,9 +144,6 @@ export default function Venue() {
       setDateFrom("");
       setDateTo("");
       setGuests(1);
-
-      // Also refetch from server in background
-      await fetchVenueBookings();
     } catch (e) {
       setBookingError(e.message || "An error occurred while creating booking");
     } finally {
@@ -220,7 +183,6 @@ export default function Venue() {
           src={data.media[0]?.url}
           title={data.media[0]?.alt}
         />
-        {/* <TitlebarImageList /> */}
       </Grid>
       <Grid size={6} sx={{ p: 2 }}>
         <Stack spacing={2}>

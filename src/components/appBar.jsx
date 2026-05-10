@@ -1,4 +1,3 @@
-import * as React from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -13,16 +12,17 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 function ResponsiveAppBar() {
   const navigate = useNavigate();
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [userAvatar, setUserAvatar] = React.useState(
+  const [anchorElNav, setAnchorElNav] = useState(null);
+  const [anchorElUser, setAnchorElUser] = useState(null);
+  const [userAvatar, setUserAvatar] = useState(
     "/static/images/avatar/default.jpg",
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
       const user = JSON.parse(userStr);
@@ -69,7 +69,6 @@ function ResponsiveAppBar() {
             p: { xs: 1, sm: 2 },
           }}
         >
-          {/* Logo */}
           <Typography
             variant="h6"
             noWrap
@@ -86,7 +85,6 @@ function ResponsiveAppBar() {
             Holidaze
           </Typography>
 
-          {/* Desktop Navigation */}
           <Box
             sx={{
               display: { xs: "none", md: "flex" },
@@ -111,7 +109,6 @@ function ResponsiveAppBar() {
             </Button>
           </Box>
 
-          {/* Mobile Menu */}
           <Box
             sx={{
               display: { xs: "flex", md: "none" },
@@ -150,7 +147,6 @@ function ResponsiveAppBar() {
             </Menu>
           </Box>
 
-          {/* User Avatar Menu - appears on all sizes */}
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Account">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
