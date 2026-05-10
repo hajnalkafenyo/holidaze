@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Avatar,
   Button,
@@ -23,6 +24,7 @@ const API_BASE_URL = "https://v2.api.noroff.dev";
 const NOROFF_API_KEY = "72a1c703-80ba-45da-a12e-3fcc1efb2c64";
 
 export function SignUp() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -76,6 +78,7 @@ export function SignUp() {
 
       setIsLoading(false);
       setError("");
+      navigate("/log-in");
     } catch (e) {
       setError(e.message);
       setIsLoading(false);

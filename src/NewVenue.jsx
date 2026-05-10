@@ -10,6 +10,8 @@ export default function NewVenue() {
           zip: "",
           country: "",
           address: "",
+          lat: 0,
+          lng: 0,
         },
         name: "",
         media: [],
