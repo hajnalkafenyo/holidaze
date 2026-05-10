@@ -34,7 +34,7 @@ export default function Venue() {
       setIsLoading(true);
       try {
         const res = await fetch(
-          `https://v2.api.noroff.dev/holidaze/venues/${id}`,
+          `https://v2.api.noroff.dev/holidaze/venues/${id}?_owner=true`,
           {
             method: "GET",
             headers: {
@@ -75,12 +75,18 @@ export default function Venue() {
     getVenue();
   }, [id]);
 
+  const isVenueOwner = () => {
+    const userStr = window.localStorage.getItem("user");
+    if (!userStr || !data?.owner) return false;
+    const user = JSON.parse(userStr);
+    return user.name === data.owner.name;
+  };
+
   const handleBooking = async (e) => {
     e.preventDefault();
     setBookingError("");
     setBookingSuccess("");
 
-    // Validate inputs
     if (!dateFrom || !dateTo || !guests) {
       setBookingError("Please fill in all booking fields");
       return;
@@ -166,9 +172,14 @@ export default function Venue() {
         <Typography variant="h5" component="p">
           {data.location.country}
         </Typography>
-        <Button href={"/edit-venue"} variant="contained">
-          Edit
-        </Button>
+        {isVenueOwner() && (
+          <Button
+            variant="contained"
+            onClick={() => navigate(`/venue/${id}/edit`)}
+          >
+            Edit
+          </Button>
+        )}
       </Grid>
       <Grid size={6}>
         <img
