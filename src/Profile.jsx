@@ -13,8 +13,9 @@ import {
   CardContent,
   Avatar,
   Divider,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
-import { Edit as EditIcon } from "@mui/icons-material";
 
 const API_BASE_URL = "https://v2.api.noroff.dev";
 
@@ -23,7 +24,12 @@ export function Profile() {
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Form state
+  const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
+  const [venueManager, setVenueManager] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState("");
   const [updateSuccess, setUpdateSuccess] = useState("");
@@ -69,7 +75,10 @@ export function Profile() {
 
         const data = await res.json();
         setProfile(data.data);
+        setBio(data.data.bio || "");
         setAvatarUrl(data.data.avatar?.url || "");
+        setBannerUrl(data.data.banner?.url || "");
+        setVenueManager(data.data.venueManager || false);
         setError("");
       } catch (e) {
         setError(e.message || "An error occurred while loading the profile");
@@ -81,13 +90,14 @@ export function Profile() {
     fetchProfile();
   }, [navigate]);
 
-  const handleAvatarUpdate = async (e) => {
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setUpdateError("");
     setUpdateSuccess("");
 
-    if (!avatarUrl || typeof avatarUrl !== "string" || !avatarUrl.trim()) {
-      setUpdateError("Please enter a valid image URL");
+    // Validate at least one field is provided
+    if (!bio && !avatarUrl && !bannerUrl && !venueManager) {
+      setUpdateError("Please make at least one change to save");
       return;
     }
 
@@ -95,6 +105,22 @@ export function Profile() {
       setIsUpdating(true);
       const userStr = window.localStorage.getItem("user");
       const user = JSON.parse(userStr);
+
+      const updateBody = {};
+      if (bio) updateBody.bio = bio;
+      if (avatarUrl) {
+        updateBody.avatar = {
+          url: avatarUrl,
+          alt: "User avatar",
+        };
+      }
+      if (bannerUrl) {
+        updateBody.banner = {
+          url: bannerUrl,
+          alt: "User banner",
+        };
+      }
+      updateBody.venueManager = venueManager;
 
       const res = await fetch(
         `${API_BASE_URL}/holidaze/profiles/${user.name}`,
@@ -105,21 +131,16 @@ export function Profile() {
             Authorization: `Bearer ${user.accessToken}`,
             "X-Noroff-API-Key": "9ac5c94b-623e-4ae8-af56-e222a29990ab",
           },
-          body: JSON.stringify({
-            avatar: {
-              url: avatarUrl,
-              alt: "User avatar",
-            },
-          }),
+          body: JSON.stringify(updateBody),
         },
       );
 
       if (!res.ok) {
         const data = await res.json();
         if (data.errors) {
-          setUpdateError(data.errors[0]?.message || "Failed to update avatar");
+          setUpdateError(data.errors[0]?.message || "Failed to update profile");
         } else {
-          setUpdateError("Failed to update avatar");
+          setUpdateError("Failed to update profile");
         }
         setIsUpdating(false);
         return;
@@ -127,10 +148,10 @@ export function Profile() {
 
       const data = await res.json();
       setProfile(data.data);
-      setUpdateSuccess("Avatar updated successfully!");
+      setUpdateSuccess("Profile updated successfully!");
       setTimeout(() => setUpdateSuccess(""), 3000);
     } catch (e) {
-      setUpdateError(e.message || "An error occurred while updating avatar");
+      setUpdateError(e.message || "An error occurred while updating profile");
     } finally {
       setIsUpdating(false);
     }
@@ -176,7 +197,7 @@ export function Profile() {
         sx={{
           width: "100%",
           height: { xs: "200px", md: "300px" },
-          backgroundImage: `url(${profile.avatar?.url || "https://images.unsplash.com/photo-1557821552-17105176677c?w=1200&h=300&fit=crop"})`,
+          backgroundImage: `url(${bannerUrl || profile.banner?.url || "https://images.unsplash.com/photo-1557821552-17105176677c?w=1200&h=300&fit=crop"})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           position: "relative",
@@ -190,7 +211,7 @@ export function Profile() {
           <Card elevation={3}>
             <CardContent sx={{ textAlign: "center" }}>
               <Avatar
-                src={profile.avatar?.url}
+                src={avatarUrl || profile.avatar?.url}
                 sx={{
                   width: 150,
                   height: 150,
@@ -270,23 +291,11 @@ export function Profile() {
           </Card>
         </Grid>
 
-        {/* Profile Details Section */}
+        {/* Edit Profile Form Section */}
         <Grid item xs={12} md={8}>
-          {/* Bio Section */}
-          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Bio
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              {profile.bio || "No bio provided"}
-            </Typography>
-          </Paper>
-
-          {/* Avatar Update Section */}
           <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              <EditIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-              Update Avatar
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Edit Profile
             </Typography>
 
             {updateError && (
@@ -301,62 +310,121 @@ export function Profile() {
               </Alert>
             )}
 
-            <form onSubmit={handleAvatarUpdate}>
-              <Box sx={{ mb: 2 }}>
+            <form onSubmit={handleProfileUpdate}>
+              {/* Bio Field */}
+              <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Image URL
+                  Bio
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  placeholder="Tell us about yourself..."
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  disabled={isUpdating}
+                  variant="outlined"
+                />
+              </Box>
+
+              {/* Avatar URL Field */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Avatar URL
                 </Typography>
                 <TextField
                   fullWidth
                   type="url"
-                  placeholder="https://example.com/image.jpg"
+                  placeholder="https://example.com/avatar.jpg"
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
                   disabled={isUpdating}
                   variant="outlined"
                   size="small"
                 />
+                {avatarUrl && (
+                  <Box sx={{ mt: 2, maxWidth: "200px" }}>
+                    <Typography variant="caption" sx={{ display: "block", mb: 1 }}>
+                      Avatar Preview:
+                    </Typography>
+                    <img
+                      src={avatarUrl}
+                      alt="Avatar preview"
+                      style={{
+                        width: "100%",
+                        height: "auto",
+                        borderRadius: "4px",
+                        objectFit: "cover",
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
+                    />
+                  </Box>
+                )}
               </Box>
 
-              {avatarUrl && (
-                <Box
-                  sx={{
-                    mb: 2,
-                    maxWidth: "200px",
-                    borderRadius: 1,
-                    overflow: "hidden",
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    sx={{ display: "block", mb: 1 }}
-                  >
-                    Preview:
-                  </Typography>
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar preview"
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      borderRadius: "4px",
-                      objectFit: "cover",
-                    }}
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                    }}
-                  />
-                </Box>
-              )}
+              {/* Banner URL Field */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Banner URL
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="url"
+                  placeholder="https://example.com/banner.jpg"
+                  value={bannerUrl}
+                  onChange={(e) => setBannerUrl(e.target.value)}
+                  disabled={isUpdating}
+                  variant="outlined"
+                  size="small"
+                />
+                {bannerUrl && (
+                  <Box sx={{ mt: 2, maxWidth: "100%", height: "100px" }}>
+                    <Typography variant="caption" sx={{ display: "block", mb: 1 }}>
+                      Banner Preview:
+                    </Typography>
+                    <img
+                      src={bannerUrl}
+                      alt="Banner preview"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: "4px",
+                        objectFit: "cover",
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
+                    />
+                  </Box>
+                )}
+              </Box>
 
+              {/* Venue Manager Checkbox */}
+              <Box sx={{ mb: 3 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={venueManager}
+                      onChange={(e) => setVenueManager(e.target.checked)}
+                      disabled={isUpdating}
+                    />
+                  }
+                  label="Venue Manager"
+                />
+              </Box>
+
+              {/* Submit Button */}
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
-                disabled={isUpdating || !avatarUrl || typeof avatarUrl !== "string" || !avatarUrl.trim()}
-                sx={{ mt: 1 }}
+                disabled={isUpdating}
+                fullWidth
               >
-                {isUpdating ? "Updating..." : "Update Avatar"}
+                {isUpdating ? "Saving..." : "Save Profile"}
               </Button>
             </form>
           </Paper>

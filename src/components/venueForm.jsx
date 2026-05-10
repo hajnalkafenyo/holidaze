@@ -212,7 +212,7 @@ export function VenueForm({ defaultValues, submit }) {
               </Paper>
             ))}
           </Stack>
-          <pre>{JSON.stringify(services, null, 2)}</pre>
+
           <Button
             onClick={() => {
               setPictures((p) => [...p, ""]);
@@ -257,8 +257,8 @@ export function VenueForm({ defaultValues, submit }) {
                 </InputLabel>
                 <OutlinedInput
                   id="outlined-adornment-amount"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  value={price?.toString()}
+                  onChange={(e) => setPrice(parseInt(e.target.value))}
                   startAdornment={
                     <InputAdornment position="start">Kr</InputAdornment>
                   }
