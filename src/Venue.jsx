@@ -6,6 +6,10 @@ import {
   Stack,
   Tooltip,
   Typography,
+  TextField,
+  Alert,
+  Box,
+  CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { BasicRating } from "./components/basicRating";
@@ -17,7 +21,7 @@ import IconButton from "@mui/material/IconButton";
 import InfoIcon from "@mui/icons-material/Info";
 import { deepOrange } from "@mui/material/colors";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 /*
 function TitlebarImageList() {
   return (
@@ -53,10 +57,18 @@ function TitlebarImageList() {
 
 export default function Venue() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [data, setData] = useState(undefined);
   const [isLoading, setIsLoading] = useState(false);
-
   const [error, setError] = useState("");
+
+  // Booking form state
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [guests, setGuests] = useState(1);
+  const [isBooking, setIsBooking] = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const [bookingSuccess, setBookingSuccess] = useState("");
 
   useEffect(() => {
     async function getVenue() {
@@ -104,6 +116,82 @@ export default function Venue() {
 
     getVenue();
   }, [id]);
+
+  const handleBooking = async (e) => {
+    e.preventDefault();
+    setBookingError("");
+    setBookingSuccess("");
+
+    // Validate inputs
+    if (!dateFrom || !dateTo || !guests) {
+      setBookingError("Please fill in all booking fields");
+      return;
+    }
+
+    if (new Date(dateFrom) >= new Date(dateTo)) {
+      setBookingError("Check-out date must be after check-in date");
+      return;
+    }
+
+    if (guests > data.maxGuests) {
+      setBookingError(`Maximum guests is ${data.maxGuests}`);
+      return;
+    }
+
+    if (guests < 1) {
+      setBookingError("At least 1 guest required");
+      return;
+    }
+
+    try {
+      setIsBooking(true);
+      const userStr = window.localStorage.getItem("user");
+      if (!userStr) {
+        navigate("/log-in");
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      const bookingBody = {
+        dateFrom: new Date(dateFrom).toISOString().split("T")[0],
+        dateTo: new Date(dateTo).toISOString().split("T")[0],
+        guests: parseInt(guests),
+        venueId: id,
+      };
+
+      const res = await fetch("https://v2.api.noroff.dev/holidaze/bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.accessToken}`,
+          "X-Noroff-API-Key": "9ac5c94b-623e-4ae8-af56-e222a29990ab",
+        },
+        body: JSON.stringify(bookingBody),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        if (data.errors) {
+          setBookingError(
+            data.errors[0]?.message || "Failed to create booking",
+          );
+        } else {
+          setBookingError("Failed to create booking");
+        }
+        setIsBooking(false);
+        return;
+      }
+
+      setBookingSuccess("Booking created successfully!");
+      setDateFrom("");
+      setDateTo("");
+      setGuests(1);
+    } catch (e) {
+      setBookingError(e.message || "An error occurred while creating booking");
+    } finally {
+      setIsBooking(false);
+    }
+  };
 
   if (!data) {
     return null;
@@ -210,6 +298,91 @@ export default function Venue() {
           {data.description}
         </Typography>
       </Paper>
+      <Grid size={12} sx={{ p: 2 }}>
+        <Paper sx={{ p: 3 }} elevation={3}>
+          <Typography variant="h5" component="h3" sx={{ mb: 2 }}>
+            Create a Booking
+          </Typography>
+
+          {bookingError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {bookingError}
+            </Alert>
+          )}
+
+          {bookingSuccess && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {bookingSuccess}
+            </Alert>
+          )}
+
+          <form onSubmit={handleBooking}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 2,
+                mb: 2,
+              }}
+            >
+              <TextField
+                label="Check-in Date"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                disabled={isBooking}
+                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  input: { min: new Date().toISOString().split("T")[0] },
+                }}
+              />
+              <TextField
+                label="Check-out Date"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                disabled={isBooking}
+                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  input: { min: new Date().toISOString().split("T")[0] },
+                }}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <TextField
+                label="Number of Guests"
+                type="number"
+                value={guests}
+                onChange={(e) => setGuests(e.target.value)}
+                disabled={isBooking}
+                inputProps={{ min: 1, max: data.maxGuests }}
+                fullWidth
+              />
+              <Typography variant="caption" sx={{ display: "block", mt: 1 }}>
+                Maximum guests: {data.maxGuests}
+              </Typography>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2">
+                Price per night: {data.price} NOK
+              </Typography>
+            </Box>
+
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={isBooking}
+              fullWidth
+              size="large"
+            >
+              {isBooking ? "Creating Booking..." : "Create Booking"}
+            </Button>
+          </form>
+        </Paper>
+      </Grid>
     </Grid>
   );
 }
