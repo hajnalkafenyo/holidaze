@@ -2,12 +2,13 @@ import Grid from "@mui/material/Grid";
 import { VenueCard } from "./components/venueCard";
 import BookingCard from "./components/bookingCard";
 import { useEffect, useState } from "react";
+import { TextField, Box, Typography, Alert } from "@mui/material";
 
 export default function Home() {
   const [data, setData] = useState(undefined);
   const [isLoading, setIsLoading] = useState(false);
-
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     async function getVenues() {
@@ -60,18 +61,45 @@ export default function Home() {
   if (error) {
     return <p>There was an error when loading the data. {error}</p>;
   }
-  return (
-    <Grid container sx={{ p: 2, gap: 2 }}>
-      {data &&
-        data.map((venue) => (
-          <Grid size={3}>
-            <VenueCard venue={venue} />
-          </Grid>
-        ))}
 
-      <Grid size={12}>
-        <BookingCard />
+  const filteredVenues = data?.filter(
+    (venue) =>
+      venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      venue.location?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      venue.location?.country?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  return (
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Browse Venues
+        </Typography>
+        <TextField
+          fullWidth
+          placeholder="Search by venue name, city, or country..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          variant="outlined"
+        />
+      </Box>
+
+      {filteredVenues && filteredVenues.length === 0 && searchTerm && (
+        <Alert severity="info">No venues found matching your search.</Alert>
+      )}
+
+      <Grid container sx={{ gap: 2 }}>
+        {filteredVenues &&
+          filteredVenues.map((venue) => (
+            <Grid key={venue.id} size={3}>
+              <VenueCard venue={venue} />
+            </Grid>
+          ))}
+
+        <Grid size={12}>
+          <BookingCard />
+        </Grid>
       </Grid>
-    </Grid>
+    </Box>
   );
 }

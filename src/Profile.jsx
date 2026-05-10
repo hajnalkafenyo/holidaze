@@ -15,6 +15,17 @@ import {
   Divider,
   FormControlLabel,
   Checkbox,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CardMedia,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 
 const API_BASE_URL = "https://v2.api.noroff.dev";
@@ -33,6 +44,21 @@ export function Profile() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState("");
   const [updateSuccess, setUpdateSuccess] = useState("");
+
+  // Bookings and Venues state
+  const [bookings, setBookings] = useState([]);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(false);
+  const [bookingsError, setBookingsError] = useState("");
+  const [venues, setVenues] = useState([]);
+  const [isLoadingVenues, setIsLoadingVenues] = useState(false);
+  const [venuesError, setVenuesError] = useState("");
+
+  // Venue bookings modal state
+  const [venueBookingsDialog, setVenueBookingsDialog] = useState(false);
+  const [selectedVenue, setSelectedVenue] = useState(null);
+  const [venueBookings, setVenueBookings] = useState([]);
+  const [isLoadingVenueBookings, setIsLoadingVenueBookings] = useState(false);
+  const [venueBookingsError, setVenueBookingsError] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -89,6 +115,131 @@ export function Profile() {
 
     fetchProfile();
   }, [navigate]);
+
+  // Fetch bookings
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const userStr = window.localStorage.getItem("user");
+        if (!userStr) return;
+
+        const user = JSON.parse(userStr);
+        setIsLoadingBookings(true);
+        const res = await fetch(
+          `${API_BASE_URL}/holidaze/profiles/${user.name}/bookings`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.accessToken}`,
+              "X-Noroff-API-Key": "9ac5c94b-623e-4ae8-af56-e222a29990ab",
+            },
+          },
+        );
+
+        if (!res.ok) {
+          setBookingsError("Failed to load bookings");
+          setIsLoadingBookings(false);
+          return;
+        }
+
+        const data = await res.json();
+        setBookings(data.data || []);
+        setBookingsError("");
+      } catch (e) {
+        setBookingsError(e.message || "Error loading bookings");
+      } finally {
+        setIsLoadingBookings(false);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
+  // Fetch venues (if venue manager)
+  useEffect(() => {
+    const fetchVenues = async () => {
+      try {
+        const userStr = window.localStorage.getItem("user");
+        if (!userStr) return;
+
+        const user = JSON.parse(userStr);
+        setIsLoadingVenues(true);
+        const res = await fetch(
+          `${API_BASE_URL}/holidaze/profiles/${user.name}/venues`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.accessToken}`,
+              "X-Noroff-API-Key": "9ac5c94b-623e-4ae8-af56-e222a29990ab",
+            },
+          },
+        );
+
+        if (!res.ok) {
+          setVenuesError("Failed to load venues");
+          setIsLoadingVenues(false);
+          return;
+        }
+
+        const data = await res.json();
+        setVenues(data.data || []);
+        setVenuesError("");
+      } catch (e) {
+        setVenuesError(e.message || "Error loading venues");
+      } finally {
+        setIsLoadingVenues(false);
+      }
+    };
+
+    if (venueManager) {
+      fetchVenues();
+    }
+  }, [venueManager]);
+
+  const handleOpenVenueBookings = async (venue) => {
+    setSelectedVenue(venue);
+    setVenueBookingsDialog(true);
+    setIsLoadingVenueBookings(true);
+    try {
+      const userStr = window.localStorage.getItem("user");
+      const user = JSON.parse(userStr);
+
+      const res = await fetch(
+        `${API_BASE_URL}/holidaze/venues/${venue.id}/bookings`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.accessToken}`,
+            "X-Noroff-API-Key": "9ac5c94b-623e-4ae8-af56-e222a29990ab",
+          },
+        },
+      );
+
+      if (!res.ok) {
+        setVenueBookingsError("Failed to load bookings");
+        setIsLoadingVenueBookings(false);
+        return;
+      }
+
+      const data = await res.json();
+      setVenueBookings(data.data || []);
+      setVenueBookingsError("");
+    } catch (e) {
+      setVenueBookingsError(e.message || "Error loading bookings");
+    } finally {
+      setIsLoadingVenueBookings(false);
+    }
+  };
+
+  const handleCloseVenueBookings = () => {
+    setVenueBookingsDialog(false);
+    setSelectedVenue(null);
+    setVenueBookings([]);
+    setVenueBookingsError("");
+  };
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -430,6 +581,121 @@ export function Profile() {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Bookings Section */}
+      <Grid item xs={12} sx={{ px: { xs: 2, md: 4 }, mt: 4 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          My Bookings
+        </Typography>
+        {isLoadingBookings && <CircularProgress />}
+        {bookingsError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {bookingsError}
+          </Alert>
+        )}
+        {!isLoadingBookings && bookings.length === 0 && (
+          <Alert severity="info">No bookings yet</Alert>
+        )}
+        {!isLoadingBookings && bookings.length > 0 && (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                  <TableCell>
+                    <strong>Check-in</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Check-out</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Guests</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Days</strong>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {bookings
+                  .sort(
+                    (a, b) =>
+                      new Date(b.dateFrom) - new Date(a.dateFrom),
+                  )
+                  .map((booking) => {
+                    const checkIn = new Date(booking.dateFrom);
+                    const checkOut = new Date(booking.dateTo);
+                    const days = Math.ceil(
+                      (checkOut - checkIn) / (1000 * 60 * 60 * 24),
+                    );
+                    return (
+                      <TableRow key={booking.id}>
+                        <TableCell>{formatDate(booking.dateFrom)}</TableCell>
+                        <TableCell>{formatDate(booking.dateTo)}</TableCell>
+                        <TableCell>{booking.guests}</TableCell>
+                        <TableCell>{days}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Grid>
+
+      {/* Venues Section (if venue manager) */}
+      {venueManager && (
+        <Grid item xs={12} sx={{ px: { xs: 2, md: 4 }, mt: 4 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            My Venues
+          </Typography>
+          {isLoadingVenues && <CircularProgress />}
+          {venuesError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {venuesError}
+            </Alert>
+          )}
+          {!isLoadingVenues && venues.length === 0 && (
+            <Alert severity="info">No venues created yet</Alert>
+          )}
+          {!isLoadingVenues && venues.length > 0 && (
+            <Grid container spacing={3}>
+              {venues.map((venue) => (
+                <Grid item xs={12} sm={6} md={4} key={venue.id}>
+                  <Card elevation={2} sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+                    {venue.media && venue.media[0] && (
+                      <CardMedia
+                        component="img"
+                        height="200"
+                        image={venue.media[0].url}
+                        alt={venue.media[0].alt || venue.name}
+                      />
+                    )}
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" sx={{ mb: 1 }}>
+                        {venue.name}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                        {venue.location?.city}, {venue.location?.country}
+                      </Typography>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        {venue.price} NOK/night
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                        Max guests: {venue.maxGuests}
+                      </Typography>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography variant="body2">
+                          Rating: {venue.rating || "N/A"}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Grid>
+      )}
     </Box>
   );
 }

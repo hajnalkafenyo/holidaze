@@ -320,14 +320,10 @@ export function VenueForm({ defaultValues, submit }) {
                   </InputLabel>
                   <OutlinedInput
                     id="outlined-adornment-amount"
-                    startAdornment={
-                      <InputAdornment position="start">
-                        {latitude}
-                      </InputAdornment>
-                    }
+                    value={latitude.toString()}
                     label="Latitude"
                     onChange={(e) => {
-                      setLatitude(e.target.value);
+                      setLatitude(parseFloat(e.target.value));
                     }}
                   />
                 </FormControl>
@@ -337,14 +333,10 @@ export function VenueForm({ defaultValues, submit }) {
                   </InputLabel>
                   <OutlinedInput
                     id="outlined-adornment-amount"
-                    startAdornment={
-                      <InputAdornment position="start">
-                        {longitude}
-                      </InputAdornment>
-                    }
+                    value={longitude.toString()}
                     label="Longitude"
                     onChange={(e) => {
-                      setLongitude(e.target.value);
+                      setLongitude(parseFloat(e.target.value));
                     }}
                   />
                 </FormControl>

@@ -55,6 +55,7 @@ export function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [venueManager, setVenueManager] = useState(false);
 
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -66,6 +67,7 @@ export function SignUp() {
       name: name,
       email: email,
       password: password,
+      venueManager: venueManager,
     };
 
     try {
@@ -210,6 +212,18 @@ export function SignUp() {
                 onChange={(e) => {
                   setPassword(e.target.value);
                 }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={venueManager}
+                    color="primary"
+                    onChange={(e) => setVenueManager(e.target.checked)}
+                  />
+                }
+                label="Register as Venue Manager"
               />
             </Grid>
             <Grid item xs={12}>

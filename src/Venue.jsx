@@ -1,6 +1,5 @@
 import { Dining, LocalParking, Person, Pets, Wifi } from "@mui/icons-material";
 import {
-  Avatar,
   Button,
   Paper,
   Stack,
@@ -9,17 +8,10 @@ import {
   TextField,
   Alert,
   Box,
-  CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { BasicRating } from "./components/basicRating";
-import ImageList from "@mui/material/ImageList";
-import ImageListItem from "@mui/material/ImageListItem";
-import ImageListItemBar from "@mui/material/ImageListItemBar";
-import ListSubheader from "@mui/material/ListSubheader";
-import IconButton from "@mui/material/IconButton";
-import InfoIcon from "@mui/icons-material/Info";
-import { deepOrange } from "@mui/material/colors";
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 /*
@@ -186,6 +178,9 @@ export default function Venue() {
       setDateFrom("");
       setDateTo("");
       setGuests(1);
+
+      // Also refetch from server in background
+      await fetchVenueBookings();
     } catch (e) {
       setBookingError(e.message || "An error occurred while creating booking");
     } finally {
@@ -298,6 +293,7 @@ export default function Venue() {
           {data.description}
         </Typography>
       </Paper>
+
       <Grid size={12} sx={{ p: 2 }}>
         <Paper sx={{ p: 3 }} elevation={3}>
           <Typography variant="h5" component="h3" sx={{ mb: 2 }}>
