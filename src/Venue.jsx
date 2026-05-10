@@ -238,7 +238,7 @@ export default function Venue() {
             </Typography>
             <BasicRating rating={data.rating} />
           </Paper>
-          {data.location.lat && data.location.lng && (
+          {data.location.lat && data.location.lng ? (
             <Paper sx={{ padding: "4px", alignContent: "center" }}>
               <iframe
                 width="425"
@@ -255,7 +255,7 @@ export default function Venue() {
                 </a>
               </small>
             </Paper>
-          )}
+          ) : null}
         </Stack>
       </Grid>
       <Paper sx={{ p: 2 }}>

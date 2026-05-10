@@ -94,10 +94,6 @@ export default function Home() {
               <VenueCard venue={venue} />
             </Grid>
           ))}
-
-        <Grid size={12}>
-          <BookingCard />
-        </Grid>
       </Grid>
     </Box>
   );
